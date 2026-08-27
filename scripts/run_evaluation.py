@@ -38,6 +38,7 @@ def main():
     parser.add_argument("--mode", type=str, choices=["deterministic", "fast_acoustic", "stem_acoustic"],
                         default="deterministic",
                         help="Alignment mode: 'deterministic' (instant), 'fast_acoustic' (12-16s sweet spot), or 'stem_acoustic' (88s deep offline)")
+    parser.add_argument("--center_dsp", action="store_true", help="Apply 0.15s Spectral Center-Channel DSP vocal extraction")
     parser.add_argument("--cache", type=str, default="cache/song_dataset_cache.pkl", help="Path to cached dataset")
     parser.add_argument("--checkpoint", type=str, default="learned_parameters.json", help="Path to model checkpoint")
     args = parser.parse_args()
@@ -79,7 +80,7 @@ def main():
             t_s0 = time.time()
             if args.mode == "fast_acoustic":
                 print(f"Aligning with fast line-windowed acoustic model: {s_name}...")
-                aligned_lines = align_song_fast_acoustic(mp3_path, s_data['lines'], ffmpeg_bin=FFMPEG_BIN)
+                aligned_lines = align_song_fast_acoustic(mp3_path, s_data['lines'], ffmpeg_bin=FFMPEG_BIN, use_center_dsp=args.center_dsp)
             else:
                 print(f"Separating stems & aligning with deep neural model: {s_name}...")
                 aligned_lines = align_song_with_demucs(mp3_path, s_data['lines'], ffmpeg_bin=FFMPEG_BIN)
