@@ -174,7 +174,7 @@ def align_song_fast_acoustic(
         hybrid_words[-1]['end'] = effective_end_us
 
         # Snap first word to line start if gap is negligible (<120ms)
-        if hybrid_words[0]['start'] - start_us < 120000:
+        if hybrid_words[0]['start'] - start_us < 280000:
             hybrid_words[0]['start'] = start_us
 
         aligned_results.append(hybrid_words)
