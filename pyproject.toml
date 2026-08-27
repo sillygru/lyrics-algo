@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rich-lyrics-aligner"
+version = "1.0.0"
+description = "Deterministic rich synced lyrics alignment engine from line-by-line lyrics"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=2.0.0",
+    "scipy>=1.15.0",
+    "imageio-ffmpeg>=0.5.0",
+]
+
+[project.scripts]
+rich-lyrics-align = "scripts.run_evaluation:main"
