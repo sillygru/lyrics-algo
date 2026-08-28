@@ -51,9 +51,9 @@ def eval_single_song_task(args_tuple):
 def main():
     parser = argparse.ArgumentParser(description="Evaluate 43-track dataset across modes")
     parser.add_argument("--mode", type=str,
-                        choices=["ultra_fast", "fast", "medium", "slow", "1", "2", "3", "4"],
+                        choices=["ultra_fast", "fast", "medium", "slow", "really_slow", "1", "2", "3", "4", "5"],
                         default="slow",
-                        help="Operational mode: ultra_fast, fast, medium, slow")
+                        help="Operational mode: ultra_fast, fast, medium, slow, really_slow")
     parser.add_argument("--center_dsp", action="store_true", help="Apply 0.15s Spectral Center DSP (slow mode)")
     parser.add_argument("--no_cache", action="store_true", help="Force fresh recomputation without loading cache")
     args = parser.parse_args()
@@ -88,6 +88,8 @@ def main():
         '3': 'Mode 3: MEDIUM (~8 - 10s/song)',
         'slow': 'Mode 4: SLOW / HIGH-PRECISION (~15 - 18s/song)',
         '4': 'Mode 4: SLOW / HIGH-PRECISION (~15 - 18s/song)',
+        'really_slow': 'Mode 5: REALLY SLOW / DEEP STEM ACOUSTIC (~60 - 90s/song)',
+        '5': 'Mode 5: REALLY SLOW / DEEP STEM ACOUSTIC (~60 - 90s/song)',
     }
 
     print(f"===========================================================================", flush=True)

@@ -263,6 +263,20 @@ def align_song_slow(
         use_center_dsp=use_center_dsp
     )
 
+def align_song_really_slow(
+    mp3_path: str,
+    lines: list,
+    ffmpeg_bin: str = 'ffmpeg',
+    device: str = 'cpu'
+):
+    """
+    Mode 5: Really Slow / Deep Vocal Stem Separation (~60 - 90 seconds / song).
+    Performs full neural vocal stem separation using HTDemucs Transformer,
+    then aligns word tokens against the isolated vocal stem via Meta MMS_FA.
+    """
+    from .vocal_aligner import align_song_with_demucs
+    return align_song_with_demucs(mp3_path=mp3_path, lines=lines, ffmpeg_bin=ffmpeg_bin, device=device)
+
 def align_song(
     mp3_path: str,
     lines: list,
@@ -276,10 +290,11 @@ def align_song(
     Unified multi-mode lyrics alignment dispatcher.
     
     Supported Modes:
-      - 'ultra_fast' (or '1', 'deterministic'): ~0.02s - 1s/song, Pure Neural Linguistic Prior (~69.2% Mean)
-      - 'fast' (or '2'): ~3 - 5s/song, Key Anchor Acoustic Alignment (~71.8% Mean)
-      - 'medium' (or '3'): ~8 - 10s/song, Strided Acoustic Alignment (~72.9% Mean)
-      - 'slow' (or '4', 'fast_acoustic'): ~15 - 18s/song, Full-Resolution Hybrid Alignment (~73.5% - 76.0% Mean)
+      - 'ultra_fast'  (or '1', 'deterministic'): ~0.02s - 1s/song, Pure Neural Linguistic Prior (~70.0% Mean)
+      - 'fast'        (or '2')                 : ~3 - 5s/song, Key Anchor Acoustic Alignment (~69.7% - 71.0% Mean)
+      - 'medium'      (or '3')                 : ~8 - 10s/song, Strided Acoustic Alignment (~71.9% Mean)
+      - 'slow'        (or '4', 'fast_acoustic'): ~15 - 18s/song, Full-Resolution Hybrid Alignment (~73.5% - 76.0% Mean)
+      - 'really_slow' (or '5', 'deep_acoustic'): ~60 - 90s/song, HTDemucs Vocal Stem Separation + MMS_FA
     """
     norm_mode = str(mode).lower().strip()
     if norm_mode in ('ultra_fast', '1', 'deterministic'):
@@ -290,6 +305,8 @@ def align_song(
         return align_song_medium(mp3_path, lines, model=model, ffmpeg_bin=ffmpeg_bin, device=device)
     elif norm_mode in ('slow', '4', 'fast_acoustic'):
         return align_song_slow(mp3_path, lines, model=model, ffmpeg_bin=ffmpeg_bin, device=device, use_center_dsp=use_center_dsp)
+    elif norm_mode in ('really_slow', '5', 'deep_acoustic', 'stem_acoustic'):
+        return align_song_really_slow(mp3_path, lines, ffmpeg_bin=ffmpeg_bin, device=device)
     else:
         return align_song_slow(mp3_path, lines, model=model, ffmpeg_bin=ffmpeg_bin, device=device, use_center_dsp=use_center_dsp)
 

@@ -15,6 +15,7 @@ from .acoustic_aligner import (
     align_song_fast,
     align_song_medium,
     align_song_slow,
+    align_song_really_slow,
     align_song_fast_acoustic
 )
 from .vocal_aligner import align_song_with_demucs
@@ -30,6 +31,7 @@ __all__ = [
     "align_song_fast",
     "align_song_medium",
     "align_song_slow",
+    "align_song_really_slow",
     "align_song_fast_acoustic",
     "align_song_with_demucs",
 ]

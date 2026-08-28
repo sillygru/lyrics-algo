@@ -35,13 +35,13 @@ from lyrics_aligner import (
 from lyrics_aligner.audio import FFMPEG_BIN
 
 def main():
-    parser = argparse.ArgumentParser(description="Evaluate rich lyrics alignment benchmark across 4 operational modes")
+    parser = argparse.ArgumentParser(description="Evaluate rich lyrics alignment benchmark across 5 operational modes")
     parser.add_argument("--song", type=str, help="Specific song name to evaluate")
     parser.add_argument("--verbose", action="store_true", help="Print full score distribution table")
     parser.add_argument("--mode", type=str,
-                        choices=["ultra_fast", "fast", "medium", "slow", "1", "2", "3", "4", "deterministic", "fast_acoustic", "stem_acoustic"],
+                        choices=["ultra_fast", "fast", "medium", "slow", "really_slow", "1", "2", "3", "4", "5", "deterministic", "fast_acoustic", "stem_acoustic", "deep_acoustic"],
                         default="slow",
-                        help="Alignment mode: 'ultra_fast' (~1s), 'fast' (3-5s), 'medium' (8-10s), 'slow' (15-18s sweet spot)")
+                        help="Alignment mode: 'ultra_fast' (<1s), 'fast' (3-5s), 'medium' (8-10s), 'slow' (15-18s sweet spot), 'really_slow' (60-90s Demucs)")
     parser.add_argument("--center_dsp", action="store_true", help="Apply 0.15s Spectral Center-Channel DSP vocal extraction (slow mode)")
     parser.add_argument("--cache", type=str, default="cache/song_dataset_cache.pkl", help="Path to cached dataset")
     parser.add_argument("--checkpoint", type=str, default="learned_parameters.json", help="Path to model checkpoint")
@@ -79,7 +79,10 @@ def main():
         'slow': 'Mode 4: SLOW / HIGH-PRECISION (~15 - 18s/song)',
         '4': 'Mode 4: SLOW / HIGH-PRECISION (~15 - 18s/song)',
         'fast_acoustic': 'Mode 4: SLOW / HIGH-PRECISION (~15 - 18s/song)',
-        'stem_acoustic': 'DEEP STEM ACOUSTIC (~88s/song Demucs)'
+        'really_slow': 'Mode 5: REALLY SLOW / DEEP STEM ACOUSTIC (~60 - 90s/song)',
+        '5': 'Mode 5: REALLY SLOW / DEEP STEM ACOUSTIC (~60 - 90s/song)',
+        'stem_acoustic': 'Mode 5: REALLY SLOW / DEEP STEM ACOUSTIC (~60 - 90s/song)',
+        'deep_acoustic': 'Mode 5: REALLY SLOW / DEEP STEM ACOUSTIC (~60 - 90s/song)',
     }
 
     print("\n" + "=" * 75)
