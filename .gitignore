@@ -47,3 +47,7 @@ cache/
 *.swp
 *.swo
 .DS_Store
+
+# Scratch
+scratch/
+
