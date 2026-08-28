@@ -18,6 +18,7 @@ from .acoustic_aligner import (
     align_song_really_slow,
     align_song_fast_acoustic
 )
+from .expert_router import SongStyleDetector, ExpertConfig
 from .vocal_aligner import align_song_with_demucs
 
 __all__ = [
@@ -26,6 +27,8 @@ __all__ = [
     "compute_word_score",
     "evaluate_dataset",
     "parse_ttml",
+    "SongStyleDetector",
+    "ExpertConfig",
     "align_song",
     "align_song_ultra_fast",
     "align_song_fast",

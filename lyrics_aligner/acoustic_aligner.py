@@ -119,11 +119,14 @@ def _align_single_clause(wav_16k, tokens, start_us, end_us, tempo_cps, ra, mms_m
 
     return hybrid
 
+from .expert_router import SongStyleDetector, ExpertConfig
+
 def align_song_ultra_fast(
     mp3_path: str,
     lines: list,
     model=None,
-    device: str = 'cpu'
+    device: str = 'cpu',
+    use_moe: bool = True
 ):
     """
     Mode 1: Ultra Fast (~0.02s - 1.0s / song).
@@ -150,6 +153,10 @@ def align_song_ultra_fast(
         dur = max(0.1, (l['end'] - l['start']) / 1000000.0)
         line_cps_list.append(chars / dur)
     song_tempo_cps = float(np.percentile(line_cps_list, 75)) if line_cps_list else 12.5
+
+    if use_moe:
+        _, expert = SongStyleDetector.detect_style(lines, mp3_path)
+        song_tempo_cps *= expert.linguistic_tempo_scale
 
     aligned_results = []
     for l in lines:
@@ -181,24 +188,33 @@ def align_song_fast(
     model=None,
     ffmpeg_bin: str = 'ffmpeg',
     device: str = 'cpu',
-    alpha: float = 0.80,
-    gate_s: float = 0.75,
-    head_snap_us: int = 280000
+    alpha: float = None,
+    gate_s: float = None,
+    head_snap_us: int = None,
+    use_moe: bool = True
 ):
     """
     Mode 2: Fast (~3 - 5 seconds / song).
     Performs audio decoding and runs Meta MMS_FA acoustic alignment on top key anchor lines
     (budgeted to ~8 lines), filling the remainder with the linguistic prior.
     """
+    expert = None
+    if use_moe:
+        _, expert = SongStyleDetector.detect_style(lines, mp3_path)
+
+    eff_alpha = alpha if alpha is not None else (expert.alpha if expert else 0.80)
+    eff_gate = gate_s if gate_s is not None else (expert.gate_s if expert else 0.75)
+    eff_head = head_snap_us if head_snap_us is not None else (expert.head_snap_us if expert else 280000)
+
     return align_song_fast_acoustic(
         mp3_path=mp3_path,
         lines=lines,
         model=model,
         ffmpeg_bin=ffmpeg_bin,
         device=device,
-        alpha=alpha,
-        gate_s=gate_s,
-        head_snap_us=head_snap_us,
+        alpha=eff_alpha,
+        gate_s=eff_gate,
+        head_snap_us=eff_head,
         line_budget=8,
         use_caesura=False,
         use_center_dsp=False
@@ -210,24 +226,33 @@ def align_song_medium(
     model=None,
     ffmpeg_bin: str = 'ffmpeg',
     device: str = 'cpu',
-    alpha: float = 0.80,
-    gate_s: float = 0.75,
-    head_snap_us: int = 280000
+    alpha: float = None,
+    gate_s: float = None,
+    head_snap_us: int = None,
+    use_moe: bool = True
 ):
     """
     Mode 3: Medium (~8 - 10 seconds / song).
     Performs audio decoding and runs Meta MMS_FA acoustic alignment on strided anchor lines
     (budgeted to ~22 lines) with high coverage.
     """
+    expert = None
+    if use_moe:
+        _, expert = SongStyleDetector.detect_style(lines, mp3_path)
+
+    eff_alpha = alpha if alpha is not None else (expert.alpha if expert else 0.80)
+    eff_gate = gate_s if gate_s is not None else (expert.gate_s if expert else 0.75)
+    eff_head = head_snap_us if head_snap_us is not None else (expert.head_snap_us if expert else 280000)
+
     return align_song_fast_acoustic(
         mp3_path=mp3_path,
         lines=lines,
         model=model,
         ffmpeg_bin=ffmpeg_bin,
         device=device,
-        alpha=alpha,
-        gate_s=gate_s,
-        head_snap_us=head_snap_us,
+        alpha=eff_alpha,
+        gate_s=eff_gate,
+        head_snap_us=eff_head,
         line_budget=22,
         use_caesura=False,
         use_center_dsp=False
@@ -239,28 +264,39 @@ def align_song_slow(
     model=None,
     ffmpeg_bin: str = 'ffmpeg',
     device: str = 'cpu',
-    alpha: float = 0.80,
-    gate_s: float = 0.75,
-    head_snap_us: int = 280000,
-    use_center_dsp: bool = False
+    alpha: float = None,
+    gate_s: float = None,
+    head_snap_us: int = None,
+    use_center_dsp: bool = None,
+    use_caesura: bool = None,
+    use_moe: bool = True
 ):
     """
     Mode 4: Slow / Optimal High-Precision (~15 - 18 seconds / song).
-    Full 100% resolution MMS_FA acoustic alignment on all lines + caesura breath pause splitting
-    + optional Spectral Center-Channel DSP vocal focus.
+    Full 100% resolution MMS_FA acoustic alignment with MoE dynamic parameters.
     """
+    expert = None
+    if use_moe:
+        _, expert = SongStyleDetector.detect_style(lines, mp3_path)
+
+    eff_alpha = alpha if alpha is not None else (expert.alpha if expert else 0.80)
+    eff_gate = gate_s if gate_s is not None else (expert.gate_s if expert else 0.75)
+    eff_head = head_snap_us if head_snap_us is not None else (expert.head_snap_us if expert else 280000)
+    eff_caesura = use_caesura if use_caesura is not None else (expert.use_caesura if expert else True)
+    eff_center = use_center_dsp if use_center_dsp is not None else (expert.use_center_dsp if expert else False)
+
     return align_song_fast_acoustic(
         mp3_path=mp3_path,
         lines=lines,
         model=model,
         ffmpeg_bin=ffmpeg_bin,
         device=device,
-        alpha=alpha,
-        gate_s=gate_s,
-        head_snap_us=head_snap_us,
+        alpha=eff_alpha,
+        gate_s=eff_gate,
+        head_snap_us=eff_head,
         line_budget=None,
-        use_caesura=True,
-        use_center_dsp=use_center_dsp
+        use_caesura=eff_caesura,
+        use_center_dsp=eff_center
     )
 
 def align_song_really_slow(
@@ -284,10 +320,11 @@ def align_song(
     model=None,
     ffmpeg_bin: str = 'ffmpeg',
     device: str = 'cpu',
-    use_center_dsp: bool = False
+    use_center_dsp: bool = None,
+    use_moe: bool = True
 ):
     """
-    Unified multi-mode lyrics alignment dispatcher.
+    Unified multi-mode lyrics alignment dispatcher with dynamic Mixture of Experts (MoE) routing.
     
     Supported Modes:
       - 'ultra_fast'  (or '1', 'deterministic'): ~0.02s - 1s/song, Pure Neural Linguistic Prior (~70.0% Mean)
@@ -298,17 +335,17 @@ def align_song(
     """
     norm_mode = str(mode).lower().strip()
     if norm_mode in ('ultra_fast', '1', 'deterministic'):
-        return align_song_ultra_fast(mp3_path, lines, model=model, device=device)
+        return align_song_ultra_fast(mp3_path, lines, model=model, device=device, use_moe=use_moe)
     elif norm_mode in ('fast', '2'):
-        return align_song_fast(mp3_path, lines, model=model, ffmpeg_bin=ffmpeg_bin, device=device)
+        return align_song_fast(mp3_path, lines, model=model, ffmpeg_bin=ffmpeg_bin, device=device, use_moe=use_moe)
     elif norm_mode in ('medium', '3'):
-        return align_song_medium(mp3_path, lines, model=model, ffmpeg_bin=ffmpeg_bin, device=device)
+        return align_song_medium(mp3_path, lines, model=model, ffmpeg_bin=ffmpeg_bin, device=device, use_moe=use_moe)
     elif norm_mode in ('slow', '4', 'fast_acoustic'):
-        return align_song_slow(mp3_path, lines, model=model, ffmpeg_bin=ffmpeg_bin, device=device, use_center_dsp=use_center_dsp)
+        return align_song_slow(mp3_path, lines, model=model, ffmpeg_bin=ffmpeg_bin, device=device, use_center_dsp=use_center_dsp, use_moe=use_moe)
     elif norm_mode in ('really_slow', '5', 'deep_acoustic', 'stem_acoustic'):
         return align_song_really_slow(mp3_path, lines, ffmpeg_bin=ffmpeg_bin, device=device)
     else:
-        return align_song_slow(mp3_path, lines, model=model, ffmpeg_bin=ffmpeg_bin, device=device, use_center_dsp=use_center_dsp)
+        return align_song_slow(mp3_path, lines, model=model, ffmpeg_bin=ffmpeg_bin, device=device, use_center_dsp=use_center_dsp, use_moe=use_moe)
 
 def align_song_fast_acoustic(
     mp3_path: str,
