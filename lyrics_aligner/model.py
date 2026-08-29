@@ -192,3 +192,30 @@ class NeuralLyricsEngine:
         scales.append(0.50)
         scales.extend([1.80, 1.80, 1.50, 1.20, 1.20, 1.20])
         return scales
+
+    def load_checkpoint(self, path: str):
+        """Loads learned model parameters from a JSON checkpoint file."""
+        import os
+        import json
+        if os.path.exists(path):
+            with open(path, 'r', encoding='utf-8') as fh:
+                data = json.load(fh)
+            self.set_params_dict(data.get('neural_parameters', data))
+            return True
+        return False
+
+    @classmethod
+    def load_default(cls):
+        """Creates a NeuralLyricsEngine instance loaded with packaged default weights."""
+        import os
+        engine = cls()
+        package_dir = os.path.dirname(__file__)
+        candidates = [
+            os.path.join(package_dir, 'learned_parameters.json'),
+            os.path.join(os.path.dirname(package_dir), 'learned_parameters.json'),
+        ]
+        for p in candidates:
+            if engine.load_checkpoint(p):
+                break
+        return engine
+

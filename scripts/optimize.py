@@ -38,7 +38,7 @@ def main():
     parser.add_argument("--song", type=str, default=None, help="Train on single song")
     parser.add_argument("--subset", type=int, default=None, help="Train on small subset of N songs")
     parser.add_argument("--cores", type=int, default=os.cpu_count() or 4, help="Number of CPU cores")
-    parser.add_argument("--checkpoint", type=str, default="learned_parameters.json", help="Path to checkpoint")
+    parser.add_argument("--checkpoint", type=str, default="lyrics_aligner/learned_parameters.json", help="Path to checkpoint")
     args = parser.parse_args()
 
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

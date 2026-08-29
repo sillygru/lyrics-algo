@@ -75,16 +75,12 @@ def main():
 
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     cache_path = os.path.join(project_root, "cache/song_dataset_cache.pkl")
-    json_path = os.path.join(project_root, "learned_parameters.json")
+    json_path = os.path.join(project_root, "lyrics_aligner/learned_parameters.json")
 
     with open(cache_path, 'rb') as fh:
         dataset = pickle.load(fh)
 
-    model = NeuralLyricsEngine()
-    if os.path.exists(json_path):
-        with open(json_path, 'r') as fh:
-            saved = json.load(fh)
-        model.set_params_dict(saved.get('neural_parameters', {}))
+    model = NeuralLyricsEngine.load_default()
 
     aligner = RichLyricsAligner(model)
 

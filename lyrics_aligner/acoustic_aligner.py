@@ -137,13 +137,7 @@ def align_song_ultra_fast(
     from .aligner import RichLyricsAligner
 
     if model is None:
-        model = NeuralLyricsEngine()
-        checkpoint_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'learned_parameters.json')
-        if os.path.exists(checkpoint_path):
-            import json
-            with open(checkpoint_path, 'r', encoding='utf-8') as fh:
-                saved = json.load(fh)
-            model.set_params_dict(saved.get('neural_parameters', {}))
+        model = NeuralLyricsEngine.load_default()
 
     ra = RichLyricsAligner(model)
 
@@ -369,13 +363,7 @@ def align_song_fast_acoustic(
     from .aligner import RichLyricsAligner
 
     if model is None:
-        model = NeuralLyricsEngine()
-        checkpoint_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'learned_parameters.json')
-        if os.path.exists(checkpoint_path):
-            import json
-            with open(checkpoint_path, 'r', encoding='utf-8') as fh:
-                saved = json.load(fh)
-            model.set_params_dict(saved.get('neural_parameters', {}))
+        model = NeuralLyricsEngine.load_default()
 
     ra = RichLyricsAligner(model)
 

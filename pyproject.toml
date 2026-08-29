@@ -16,3 +16,7 @@ dependencies = [
 
 [project.scripts]
 rich-lyrics-align = "scripts.run_evaluation:main"
+
+[tool.setuptools.package-data]
+lyrics_aligner = ["*.json"]
+

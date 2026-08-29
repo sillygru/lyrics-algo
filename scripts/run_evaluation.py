@@ -45,7 +45,7 @@ def main():
     parser.add_argument("--center_dsp", action="store_true", help="Apply 0.15s Spectral Center-Channel DSP vocal extraction (slow mode)")
     parser.add_argument("--no_moe", action="store_true", help="Disable Dynamic Mixture of Experts (MoE) song style routing")
     parser.add_argument("--cache", type=str, default="cache/song_dataset_cache.pkl", help="Path to cached dataset")
-    parser.add_argument("--checkpoint", type=str, default="learned_parameters.json", help="Path to model checkpoint")
+    parser.add_argument("--checkpoint", type=str, default="lyrics_aligner/learned_parameters.json", help="Path to model checkpoint")
     args = parser.parse_args()
 
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
