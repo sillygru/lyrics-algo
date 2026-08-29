@@ -41,8 +41,9 @@ def main():
     parser.add_argument("--mode", type=str,
                         choices=["ultra_fast", "fast", "medium", "slow", "really_slow", "1", "2", "3", "4", "5", "deterministic", "fast_acoustic", "stem_acoustic", "deep_acoustic"],
                         default="slow",
-                        help="Alignment mode: 'ultra_fast' (<1s), 'fast' (3-5s), 'medium' (8-10s), 'slow' (15-18s sweet spot), 'really_slow' (60-90s Demucs)")
+                        help="Alignment mode: 'ultra_fast' (<1s), 'fast' (3-5s), 'medium' (8-10s), 'slow' (15-18s high accuracy), 'really_slow' (60-90s Demucs)")
     parser.add_argument("--center_dsp", action="store_true", help="Apply 0.15s Spectral Center-Channel DSP vocal extraction (slow mode)")
+    parser.add_argument("--no_moe", action="store_true", help="Disable Dynamic Mixture of Experts (MoE) song style routing")
     parser.add_argument("--cache", type=str, default="cache/song_dataset_cache.pkl", help="Path to cached dataset")
     parser.add_argument("--checkpoint", type=str, default="learned_parameters.json", help="Path to model checkpoint")
     args = parser.parse_args()
@@ -87,27 +88,36 @@ def main():
 
     print("\n" + "=" * 75)
     print(f"RICH SYNCED LYRICS BENCHMARK EVALUATION ({mode_names.get(mode_str, mode_str.upper())})")
+    if args.no_moe:
+        print("MoE Routing: DISABLED (Global Static Baseline)")
+    else:
+        print("MoE Routing: ENABLED (Dynamic Mixture of Experts)")
     print("=" * 75)
 
-    t_start = time.time()
     song_scores = {}
+    t_start = time.time()
 
     for s_name, s_data in eval_dataset.items():
-        mp3_path = os.path.join(project_root, 'songs', f"{s_name}.mp3")
-        if not os.path.exists(mp3_path) and mode_str not in ('ultra_fast', '1', 'deterministic'):
-            print(f"Warning: Audio file {mp3_path} not found. Skipping.")
-            continue
-
         t_s0 = time.time()
-        if mode_str == "stem_acoustic":
-            aligned_lines = align_song_with_demucs(mp3_path, s_data['lines'], ffmpeg_bin=FFMPEG_BIN)
+        mp3_path = os.path.join(project_root, 'songs', f"{s_name}.mp3")
+        if not os.path.exists(mp3_path):
+            mp3_path = None
+
+        if mode_str in ('ultra_fast', '1', 'deterministic'):
+            aligned_lines = align_song(
+                mp3_path=None,
+                lines=s_data['lines'],
+                mode='ultra_fast',
+                use_moe=not args.no_moe
+            )
         else:
             aligned_lines = align_song(
                 mp3_path=mp3_path,
                 lines=s_data['lines'],
                 mode=mode_str,
                 ffmpeg_bin=FFMPEG_BIN,
-                use_center_dsp=args.center_dsp
+                use_center_dsp=args.center_dsp,
+                use_moe=not args.no_moe
             )
 
         tot_sc = 0.0

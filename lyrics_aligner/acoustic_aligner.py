@@ -1,6 +1,6 @@
 """
-Hybrid Acoustic-Linguistic Anchor Alignment Engine (Tier 2.5 Sweet Spot).
-Fuses Meta MMS_FA line-windowed acoustic CTC trellis with the NeuralLyricsEngine linguistic prior.
+Hybrid Acoustic-Linguistic Anchor Alignment Engine.
+Performs key-anchor CTC acoustic forced alignment and dynamic MoE parameter routing.
 Integrates 0.15s Spectral Center-Channel DSP Vocal Focus and Smart Acoustic Pause Segmentation.
 Delivers 90.07% top accuracy, 70.04% on Daniel Caesar, and optimal dataset-wide accuracy in ~18s/song.
 """
